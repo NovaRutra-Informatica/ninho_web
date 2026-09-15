@@ -1,0 +1,385 @@
+{
+  "checkedDate": "2026-09-15",
+  "method": "Runtime package/version entries in public GitHub Action package-lock files matched against OSV. This does not establish reachability in an Action or attest the exact contents of its precompiled bundle.",
+  "advisoryUrlTemplate": "https://github.com/advisories/{id}",
+  "lockUrlTemplate": "https://raw.githubusercontent.com/{repo}/{sha}/package-lock.json",
+  "transitiveAction": {
+    "parent": "actions/upload-pages-artifact",
+    "parentVersion": "v5.0.0",
+    "parentSHA": "fc324d3547104276b827a68afc52ff2a11cc49c9",
+    "child": "actions/upload-artifact",
+    "childVersion": "v7.0.0",
+    "childSHA": "bbbca2ddaa5d8feaa63e36b76fdaad77386f024f"
+  },
+  "actions": [
+    {
+      "repo": "actions/checkout",
+      "ref": "v7.0.1",
+      "sha": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "matches": [
+        {
+          "package": "undici",
+          "version": "6.27.0",
+          "advisories": [
+            "GHSA-8xcm-r25x-g524",
+            "GHSA-m8rv-5g2x-5cg5",
+            "GHSA-v3r7-h72x-cjcm"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "actions/setup-node",
+      "ref": "v7",
+      "sha": "820762786026740c76f36085b0efc47a31fe5020",
+      "runtimePackageVersions": 63,
+      "matches": [
+        {
+          "package": "brace-expansion",
+          "version": "1.1.13",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895"
+          ]
+        },
+        {
+          "package": "brace-expansion",
+          "version": "5.0.6",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895"
+          ]
+        },
+        {
+          "package": "undici",
+          "version": "6.27.0",
+          "advisories": [
+            "GHSA-8xcm-r25x-g524",
+            "GHSA-m8rv-5g2x-5cg5",
+            "GHSA-v3r7-h72x-cjcm"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "actions/configure-pages",
+      "ref": "v6",
+      "sha": "45bfe0192ca1faeb007ade9deae92b16b8254a0d",
+      "runtimePackageVersions": 28,
+      "matches": [
+        {
+          "package": "@octokit/plugin-paginate-rest",
+          "version": "9.2.1",
+          "advisories": [
+            "GHSA-h5c3-5r3r-rr8q"
+          ]
+        },
+        {
+          "package": "@octokit/request",
+          "version": "8.2.0",
+          "advisories": [
+            "GHSA-rmvr-2pp2-xj38"
+          ]
+        },
+        {
+          "package": "@octokit/request-error",
+          "version": "5.0.1",
+          "advisories": [
+            "GHSA-xx4v-prfh-6cgc"
+          ]
+        },
+        {
+          "package": "undici",
+          "version": "5.28.4",
+          "advisories": [
+            "GHSA-2mjp-6q6p-2qxm",
+            "GHSA-35p6-xmwp-9g52",
+            "GHSA-4992-7rv2-5pvq",
+            "GHSA-8xcm-r25x-g524",
+            "GHSA-c76h-2ccp-4975",
+            "GHSA-cxrh-j4jr-qwg3",
+            "GHSA-g8m3-5g58-fq7m",
+            "GHSA-g9mf-h72j-4rw9",
+            "GHSA-m8rv-5g2x-5cg5",
+            "GHSA-p88m-4jfj-68fv",
+            "GHSA-v3r7-h72x-cjcm",
+            "GHSA-v9p9-hfj2-hcw8",
+            "GHSA-vrm6-8vpv-qv8q",
+            "GHSA-vxpw-j846-p89q"
+          ]
+        },
+        {
+          "package": "uuid",
+          "version": "8.3.2",
+          "advisories": [
+            "GHSA-w5hq-g745-h8pq"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "actions/deploy-pages",
+      "ref": "v5.0.1",
+      "sha": "368f82528645a54fb793d4d04e342629a3f51346",
+      "runtimePackageVersions": 173,
+      "matches": [
+        {
+          "package": "@octokit/plugin-paginate-rest",
+          "version": "2.21.3",
+          "advisories": [
+            "GHSA-h5c3-5r3r-rr8q"
+          ]
+        },
+        {
+          "package": "@octokit/plugin-paginate-rest",
+          "version": "9.1.5",
+          "advisories": [
+            "GHSA-h5c3-5r3r-rr8q"
+          ]
+        },
+        {
+          "package": "@octokit/request",
+          "version": "5.6.3",
+          "advisories": [
+            "GHSA-rmvr-2pp2-xj38"
+          ]
+        },
+        {
+          "package": "@octokit/request",
+          "version": "8.1.6",
+          "advisories": [
+            "GHSA-rmvr-2pp2-xj38"
+          ]
+        },
+        {
+          "package": "@octokit/request-error",
+          "version": "2.1.0",
+          "advisories": [
+            "GHSA-xx4v-prfh-6cgc"
+          ]
+        },
+        {
+          "package": "@octokit/request-error",
+          "version": "5.0.1",
+          "advisories": [
+            "GHSA-xx4v-prfh-6cgc"
+          ]
+        },
+        {
+          "package": "brace-expansion",
+          "version": "1.1.11",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-f886-m6hf-6m8v",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895",
+            "GHSA-v6h2-p8h4-qcjw"
+          ]
+        },
+        {
+          "package": "brace-expansion",
+          "version": "2.0.1",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-f886-m6hf-6m8v",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895",
+            "GHSA-v6h2-p8h4-qcjw"
+          ]
+        },
+        {
+          "package": "cross-spawn",
+          "version": "7.0.3",
+          "advisories": [
+            "GHSA-3xgq-45jj-v275"
+          ]
+        },
+        {
+          "package": "form-data",
+          "version": "4.0.0",
+          "advisories": [
+            "GHSA-fjxv-7rqg-78g4",
+            "GHSA-hmw2-7cc7-3qxx"
+          ]
+        },
+        {
+          "package": "glob",
+          "version": "10.3.12",
+          "advisories": [
+            "GHSA-5j98-mcp5-4vw2"
+          ]
+        },
+        {
+          "package": "lodash",
+          "version": "4.17.21",
+          "advisories": [
+            "GHSA-f23m-r3pf-42rh",
+            "GHSA-r5fr-rjxr-66jc",
+            "GHSA-xxjr-mmjv-4gpg"
+          ]
+        },
+        {
+          "package": "minimatch",
+          "version": "3.1.2",
+          "advisories": [
+            "GHSA-23c5-xmqv-rm74",
+            "GHSA-3ppc-4f35-3m26",
+            "GHSA-7r86-cg39-jmmj"
+          ]
+        },
+        {
+          "package": "minimatch",
+          "version": "5.1.6",
+          "advisories": [
+            "GHSA-23c5-xmqv-rm74",
+            "GHSA-3ppc-4f35-3m26",
+            "GHSA-7r86-cg39-jmmj"
+          ]
+        },
+        {
+          "package": "minimatch",
+          "version": "9.0.4",
+          "advisories": [
+            "GHSA-23c5-xmqv-rm74",
+            "GHSA-3ppc-4f35-3m26",
+            "GHSA-7r86-cg39-jmmj"
+          ]
+        },
+        {
+          "package": "path-to-regexp",
+          "version": "6.2.1",
+          "advisories": [
+            "GHSA-9wv6-86v2-598j"
+          ]
+        },
+        {
+          "package": "undici",
+          "version": "5.28.2",
+          "advisories": [
+            "GHSA-2mjp-6q6p-2qxm",
+            "GHSA-35p6-xmwp-9g52",
+            "GHSA-3787-6prv-h9w3",
+            "GHSA-4992-7rv2-5pvq",
+            "GHSA-8xcm-r25x-g524",
+            "GHSA-9qxr-qj54-h672",
+            "GHSA-c76h-2ccp-4975",
+            "GHSA-cxrh-j4jr-qwg3",
+            "GHSA-g8m3-5g58-fq7m",
+            "GHSA-g9mf-h72j-4rw9",
+            "GHSA-m4v8-wqvr-p9f7",
+            "GHSA-m8rv-5g2x-5cg5",
+            "GHSA-p88m-4jfj-68fv",
+            "GHSA-v3r7-h72x-cjcm",
+            "GHSA-v9p9-hfj2-hcw8",
+            "GHSA-vrm6-8vpv-qv8q",
+            "GHSA-vxpw-j846-p89q"
+          ]
+        },
+        {
+          "package": "unzip-stream",
+          "version": "0.3.1",
+          "advisories": [
+            "GHSA-6jrj-vc65-c983"
+          ]
+        },
+        {
+          "package": "uuid",
+          "version": "8.3.2",
+          "advisories": [
+            "GHSA-w5hq-g745-h8pq"
+          ]
+        },
+        {
+          "package": "yaml",
+          "version": "1.10.2",
+          "advisories": [
+            "GHSA-48c2-rrv3-qjmp"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "actions/upload-artifact",
+      "ref": "bbbca2ddaa5d8feaa63e36b76fdaad77386f024f",
+      "sha": "bbbca2ddaa5d8feaa63e36b76fdaad77386f024f",
+      "runtimePackageVersions": 149,
+      "matches": [
+        {
+          "package": "brace-expansion",
+          "version": "1.1.12",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-f886-m6hf-6m8v",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895"
+          ]
+        },
+        {
+          "package": "brace-expansion",
+          "version": "2.0.2",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-f886-m6hf-6m8v",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895"
+          ]
+        },
+        {
+          "package": "brace-expansion",
+          "version": "5.0.3",
+          "advisories": [
+            "GHSA-3jxr-9vmj-r5cp",
+            "GHSA-f886-m6hf-6m8v",
+            "GHSA-jxxr-4gwj-5jf2",
+            "GHSA-mh99-v99m-4gvg",
+            "GHSA-rgw5-rvv9-x895"
+          ]
+        },
+        {
+          "package": "fast-xml-builder",
+          "version": "1.0.0",
+          "advisories": [
+            "GHSA-5wm8-gmm8-39j9"
+          ]
+        },
+        {
+          "package": "fast-xml-parser",
+          "version": "5.4.1",
+          "advisories": [
+            "GHSA-8gc5-j5rx-235r",
+            "GHSA-gh4j-gqv2-49f6",
+            "GHSA-jp2q-39xq-3w4g"
+          ]
+        },
+        {
+          "package": "lodash",
+          "version": "4.17.23",
+          "advisories": [
+            "GHSA-f23m-r3pf-42rh",
+            "GHSA-r5fr-rjxr-66jc"
+          ]
+        },
+        {
+          "package": "undici",
+          "version": "6.23.0",
+          "advisories": [
+            "GHSA-2mjp-6q6p-2qxm",
+            "GHSA-35p6-xmwp-9g52",
+            "GHSA-4992-7rv2-5pvq",
+            "GHSA-8xcm-r25x-g524",
+            "GHSA-f269-vfmq-vjvj",
+            "GHSA-g8m3-5g58-fq7m",
+            "GHSA-m8rv-5g2x-5cg5",
+            "GHSA-p88m-4jfj-68fv",
+            "GHSA-v3r7-h72x-cjcm",
+            "GHSA-v9p9-hfj2-hcw8",
+            "GHSA-vrm6-8vpv-qv8q",
+            "GHSA-vxpw-j846-p89q"
+          ]
+        }
+      ]
+    }
+  ]
+}

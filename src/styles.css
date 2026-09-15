@@ -1,0 +1,39 @@
+:root {
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  color: #24433a;
+  background: #f7f3e8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+
+.welcome {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: 32px 20px;
+  background: radial-gradient(ellipse at 12% 8%, #deebdf 0, transparent 46%),
+    radial-gradient(ellipse at 95% 94%, #efe1c1 0, transparent 45%);
+}
+
+.welcome-card {
+  width: min(100%, 600px);
+  padding: clamp(28px, 7vw, 60px);
+  text-align: center;
+  background: #fffdf8;
+  border: 1px solid #e3e5d8;
+  border-radius: 36px;
+  box-shadow: 0 20px 70px #2947390c;
+}
+
+.owl { display: block; margin: 0 auto 24px; }
+.eyebrow { margin: 0 0 12px; font-size: 15px; font-weight: 700; letter-spacing: 0.07em; }
+h1 { margin: 0 auto 24px; max-width: 380px; font-size: clamp(28px, 5vw, 38px); line-height: 1.18; letter-spacing: -0.035em; }
+.status { display: inline-flex; align-items: center; gap: 9px; margin: 0; padding: 9px 15px; color: #285d43; background: #e8f1e5; border-radius: 100px; font-size: 14px; font-weight: 600; }
+.status span { width: 7px; height: 7px; border-radius: 50%; background: #447e55; }
+.description { margin: 24px auto 0; max-width: 390px; color: #58685e; font-size: 17px; line-height: 1.65; }
+.footnote { margin: 36px 0 0; padding-top: 24px; border-top: 1px solid #ecebdd; color: #647168; font-size: 13px; line-height: 1.6; }
