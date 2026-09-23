@@ -78,13 +78,15 @@ for (const scenario of scenarios) {
       await page.goto(`${origin}${scenario.base}`);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await expect(page.locator('body')).toHaveCSS('margin', '0px');
-      const owl = page.getByRole('img', { name: 'Coruja do Ninho' });
-      await expect(owl).toHaveAttribute('src', `${scenario.base}ninho.svg`);
-      await expect.poll(() => owl.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+      const owl = page.getByRole('img', { name: /coruja do Ninho/i });
+      await expect(owl).toBeVisible();
+      await expect(owl).toHaveAttribute('viewBox', '0 0 280 260');
+      await page.evaluate(() => document.fonts.ready);
+      expect(await page.evaluate(() => document.fonts.check('500 24px Fraunces') && document.fonts.check('400 15px "DM Sans"'))).toBe(true);
       const assetUrls = await page.locator('script[src], link[href], img[src]').evaluateAll((elements) =>
         elements.map((element) => element.getAttribute('src') ?? element.getAttribute('href') ?? ''),
       );
-      expect(assetUrls.length).toBeGreaterThanOrEqual(4);
+      expect(assetUrls.length).toBeGreaterThanOrEqual(3);
       for (const assetUrl of assetUrls) {
         expect(assetUrl.startsWith(scenario.base)).toBe(true);
         const asset = await request.get(`${origin}${assetUrl}`);
@@ -146,6 +148,31 @@ for (const scenario of scenarios) {
       await page.waitForURL(destination);
       expect(navigationCount).toBe(1);
       expect(referrer).toBeUndefined();
+    });
+
+    test('reabre offline no caminho publicado sem perder matérias', async ({ page, context }) => {
+      await page.goto(`${origin}${scenario.base}`);
+      await page.evaluate(async () => {
+        await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }));
+      });
+      await page.getByLabel('Como quer ser chamado?').fill('Estudante offline');
+      for (let step = 0; step < 9; step++) await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+      await page.getByRole('button', { name: 'Salvar meu perfil', exact: true }).click();
+      await page.getByRole('button', { name: 'Conhecer meu Ninho' }).click();
+      await page.getByRole('button', { name: 'Fechar tutorial' }).click();
+      await page.getByRole('button', { name: 'Nova matéria' }).click();
+      await page.getByLabel('Nome da matéria').fill('Estudo offline');
+      await page.getByRole('dialog').getByRole('button', { name: 'Adicionar matéria', exact: true }).click();
+      await context.setOffline(true);
+      await page.reload();
+      await expect(page.getByRole('heading', { name: 'Um passo de cada vez.' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Estudo offline' })).toBeVisible();
+      await page.getByRole('navigation').getByRole('button', { name: 'Temporizador' }).click();
+      await page.getByRole('button', { name: 'Começar foco' }).click();
+      await expect(page.getByRole('button', { name: 'Pausar', exact: true })).toBeVisible();
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ninho-web:v1')!).timer.startedAt)).toBeGreaterThan(0);
+      await context.setOffline(false);
     });
   });
 }

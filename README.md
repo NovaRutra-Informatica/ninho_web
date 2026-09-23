@@ -1,13 +1,28 @@
 # Ninho Web
 
-Repositório independente para preparar a versão web do Ninho. Esta entrega contém apenas o ambiente de desenvolvimento e uma tela estática indicando **Ambiente preparado**. Os recursos dos aplicativos ainda não foram portados.
+Versão web leve do Ninho, com uma experiência prática de estudos e a coruja original. Funciona como site estático no GitHub Pages, sem login, servidor de aplicação, telemetria ou modelo de IA.
+
+## O que funciona
+
+- Matérias e temas de estudo, histórico das últimas 50 sessões na tela e histórico completo no backup.
+- Temporizador de 1 a 180 minutos, presets e ajuste por controle deslizante; cronômetro, pausa e retomada.
+- Sessão em andamento persistida pelo relógio do sistema: recarregar ou mudar de aba não reinicia o tempo. O temporizador para na duração escolhida; o cronômetro tem limite defensivo de sete dias.
+- Feedback e anotações ao concluir. A primeira revisão fica em 1, 3 ou 7 dias conforme o feedback, com progressão posterior de 1/3/7/14/30/60 dias. Essas regras são explícitas, sem personalização por IA.
+- Banco de questões criado pelo usuário, com quatro alternativas, gabarito, explicação e histórico de acertos/erros.
+- Exemplos opcionais para experimentar a interface, com confirmação antes de substituir dados.
+- Backup JSON exportável e restauração validada. Uma importação inválida não altera os dados; importações válidas pedem confirmação e deixam a sessão importada pausada.
+- Layout responsivo, navegação inferior com vidro em telas pequenas e temporizador no menu principal.
+
+Os dados ficam em `localStorage`, na chave versionada `ninho-web:v1`, separados do cache do aplicativo. Não são compartilhados com os aplicativos nativos nem sincronizados entre dispositivos. Exporte backups periodicamente: apagar dados do site ou usar navegação privada pode remover o histórico. Quando o armazenamento fica cheio ou bloqueado, a interface mostra um aviso e mantém as alterações em memória para exportação. Dados corrompidos são preservados para download de recuperação.
+
+Em produção HTTPS (ou localhost), um service worker guarda o aplicativo após a primeira visita completa e permite reabri-lo offline no mesmo endereço/navegador. Cada build cria um cache identificado pelo conteúdo; a atualização remove apenas caches anteriores do Ninho naquele caminho, nunca `localStorage`. Restrições do navegador podem impedir cache offline. O navegador verifica atualizações do shell em novas visitas; nenhum dado pessoal entra nesse cache. O servidor de desenvolvimento não registra service worker.
 
 ## Desenvolvimento
 
 Use Node.js 22.12 ou superior da linha 22, ou Node.js 24 ou superior, com npm. As versões de React, TypeScript, Vite e do plugin React foram reaproveitadas do ambiente Windows já instalado e estão fixadas no `package.json` e no `package-lock.json`.
 
 ```powershell
-cd C:\Users\aless\Ninho-Web
+cd C:\Users\aless\WebstormProjects\Ninho-Web
 npm ci
 npm run dev
 ```
@@ -22,7 +37,7 @@ npm run build
 npm run preview
 ```
 
-`check` verifica os tipos de TypeScript. `test` executa os testes de implantação e CSP em Chromium. `build` repete a verificação de tipos e gera a saída estática em `dist`. `preview` permite conferir a compilação localmente.
+`check` verifica os tipos de TypeScript. `test` executa os testes de implantação, CSP, offline e fluxos de estudo em Chromium headless. `build` repete a verificação de tipos e gera a saída estática em `dist`. `preview` permite conferir a compilação localmente.
 
 ## GitHub Pages
 
@@ -53,19 +68,21 @@ A escrita no Pages e o token OIDC ficam restritos ao job de deploy; a instalaç�
 
 O workflow foi preparado e validado localmente. Nenhum push, execução remota ou publicação foi realizado nesta alteração. [Vite no GitHub Pages](https://vite.dev/guide/static-deploy#github-pages), [workflows do GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-## Limites desta preparação
+## Limites da versão web
 
-- Não há cadastro, revisões, cronômetro, importação de arquivos, sincronização, IA, login ou integração com o Estratégia implementados nesta base.
-- A futura versão web precisa de adaptações para armazenamento e arquivos selecionados pelo usuário. Ela não deve acessar caminhos privados do Windows nem depender das APIs do Electron.
-- A integração da versão iOS com os modelos locais da Apple não está disponível nesta base web. Nenhuma chave de API ou serviço remoto foi configurado.
+- Não há login, sincronização, análise de PDFs, IA, importação de bancos externos de questões nem integração com o Estratégia. O backup JSON abrange os dados criados nesta versão.
+- O site não acessa caminhos privados do Windows e não depende de APIs do Electron.
+- A integração da versão iOS com modelos locais da Apple não faz parte da versão web. Nenhuma chave de API ou serviço remoto foi configurado.
 - A coruja original foi reaproveitada do Ninho. Nenhum PDF ou dado pessoal foi copiado.
 - A hospedagem está preparada para GitHub Pages; a configuração do serviço e a primeira publicação dependem do repositório remoto.
 
-Esta tela não tem regras de negócio. Os testes atuais verificam a entrega estática e a política de segurança; testes das funcionalidades de estudo deverão acompanhar a implementação de cada recurso.
+Os testes cobrem sessão e feedback, relógio após recarga e pausa, cronômetro, questões e respostas, progressão da revisão, exportação/restauração, corrupção/quota de armazenamento, responsividade e reabertura offline nos três caminhos de hospedagem. As capturas geradas por testes ficam em `test-results` e não são versionadas.
 
 ## Segurança e validação
 
-A saída de produção inclui CSP que permite scripts, estilos e imagens da própria origem e bloqueia scripts inline, conexões de dados, frames, objetos e alterações da URL base. A política não é aplicada ao servidor de desenvolvimento, que precisa do HMR do Vite. O documento também usa `no-referrer`.
+A saída de produção inclui CSP que permite scripts, estilos, imagens e service worker da própria origem e bloqueia scripts inline, conexões externas, frames, objetos e alterações da URL base. As conexões da própria origem atendem ao cache offline; o aplicativo não envia os dados de estudo. A política não é aplicada ao servidor de desenvolvimento, que precisa do HMR do Vite. O documento também usa `no-referrer`.
+
+Em 22/09/2026, a implementação dos recursos de estudo passou no TypeScript, build e 19 testes Chromium headless. O bundle principal de produção tem cerca de 79 kB gzip, sem fontes, bibliotecas gráficas ou IA baixadas de serviços externos. Nenhum commit, push ou deploy foi realizado.
 
 Em 15/09/2026, `npm audit` incluindo desenvolvimento encontrou **0 vulnerabilidades conhecidas em 53 dependências**. TypeScript, build, actionlint 1.7.12 e os **7 testes Chromium** passaram. Os testes constroem a aplicação na raiz e em dois subdiretórios, verificam assets por HTTP e exercitam o bloqueio de conteúdo pela CSP no navegador. A auditoria consulta os avisos publicados no registro npm; isso não prova ausência de falhas desconhecidas.
 
@@ -92,3 +109,14 @@ GitHub Pages hospeda arquivos estáticos, sem servidor da aplicação para defin
 Revise e versione os fontes, o lockfile e o workflow. Commits, staging, branches, remotos e publicação ficam sob seu controle.
 
 O `.gitignore` exclui dependências, compilação, relatórios, variáveis de ambiente, credenciais comuns, bancos de dados e materiais pessoais. O `package-lock.json` deve ser versionado. Não é necessário criar `.env` para executar esta base; se houver configuração pública futuramente, não coloque segredos em variáveis `VITE_*`, pois elas são incluídas no código entregue ao navegador.
+
+## Meu perfil, boas-vindas e tutoriais
+
+Na primeira abertura, a coruja conduz dez conversas curtas em uma tela própria, sem sidebar: nome; objetivo; motivação e prazo; matérias; ponto de partida; rotina; dias e horário; minutos e blocos de foco; preferências e dificuldades; adaptações e resumo. O mascote original reage a cada etapa, com balões e transições que respeitam a redução de animações. As fontes DM Sans e Fraunces são incluídas localmente, com suas licenças, sem baixar recursos externos. As respostas são salvas enquanto são preenchidas no mesmo armazenamento local dos estudos e entram no backup JSON. A etapa é retomada ao reabrir o navegador; o perfil só fica concluído na confirmação final. Se o navegador recusar a gravação, o cadastro oferece **Baixar cópia** para preservar o rascunho e não libera a conclusão silenciosamente. O botão **Meu perfil**, no topo, permite editá-las. Dados anteriores sem perfil continuam abrindo normalmente.
+
+Esta versão não chama modelos de IA nem simula a geração de um plano. Ao terminar o questionário, apresenta o resumo salvo e orienta o primeiro estudo. Tutoriais aparecem na primeira visita a cada tela disponível; **Como funciona** repete o tutorial atual e o perfil permite reabrir todos. Em **Seus dados**, tema claro/escuro/sistema e redução de animações são salvos automaticamente.
+
+Verificação: `npm run build` e os 25 testes Playwright passaram, incluindo onboarding em desktop/celular, edição e recarga do perfil, backup, tutorial por tela, tema persistente, funcionamento offline nos três caminhos de publicação do GitHub Pages, armazenamento corrompido/quota e sincronização entre abas. Não há dependência nova nem recursos de IA no bundle.
+
+
+O painel também apresenta **O que ficou registrado**: sessões, minutos e dias nos últimos 28 dias, respostas corretas/tentativas/questões distintas e revisões com data prevista até agora. É um resumo descritivo dos dados, sem modelo, personalização por IA, porcentagem de domínio ou inferência de atenção. Repetições contam como novas tentativas e registros futuros ficam fora da amostra. Esta versão não adiciona rastreamento de uso de outras aplicações nem coleta de navegação.
