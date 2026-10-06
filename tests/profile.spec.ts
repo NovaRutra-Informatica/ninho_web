@@ -51,7 +51,7 @@ test("perfil na primeira abertura, tutorial por tela, edição, tema e backup pe
   ).toBeVisible();
   await page.getByRole("button", { name: "Conhecer meu Ninho" }).click();
   await expect(page.getByLabel("Tutorial desta tela")).toBeVisible();
-  await page.getByRole("button", { name: "Fechar tutorial" }).click();
+  await page.getByRole("button", { name: "Ver depois" }).click();
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Um passo de cada vez." }),
@@ -68,7 +68,7 @@ test("perfil na primeira abertura, tutorial por tela, edição, tema e backup pe
     .getByRole("button", { name: "Salvar meu perfil", exact: true })
     .click();
   await page.getByRole("button", { name: "Seus dados", exact: true }).click();
-  await page.getByRole("button", { name: "Fechar tutorial" }).click();
+  await page.getByRole("button", { name: "Ver depois" }).click();
   await page.getByLabel("Aparência").selectOption("dark");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   const raw = await page.evaluate(

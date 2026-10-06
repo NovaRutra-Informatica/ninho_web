@@ -20,7 +20,7 @@ export default function Profile({
   welcome?: boolean;
   save: (profile: StudentProfile) => boolean;
   done?: () => void;
-  replay: () => void;
+  replay: () => boolean;
 }) {
   const [draft, setDraft] = useState(() => profile ?? emptyProfile());
   const draftRef = useRef(draft);
@@ -205,8 +205,9 @@ export default function Profile({
                 type="button"
                 className="text-button"
                 onClick={() => {
-                  replay();
-                  setReplayed(true);
+                  const persisted = replay();
+                  setReplayed(persisted);
+                  if (!persisted) setError('Não foi possível salvar os tutoriais. Tente novamente.');
                 }}
               >
                 Rever tutoriais de todas as telas

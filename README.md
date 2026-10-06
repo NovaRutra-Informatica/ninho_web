@@ -120,3 +120,61 @@ Verificação: `npm run build` e os 25 testes Playwright passaram, incluindo onb
 
 
 O painel também apresenta **O que ficou registrado**: sessões, minutos e dias nos últimos 28 dias, respostas corretas/tentativas/questões distintas e revisões com data prevista até agora. É um resumo descritivo dos dados, sem modelo, personalização por IA, porcentagem de domínio ou inferência de atenção. Repetições contam como novas tentativas e registros futuros ficam fora da amostra. Esta versão não adiciona rastreamento de uso de outras aplicações nem coleta de navegação.
+
+## Paridade de interação com os aplicativos
+
+As correções de interação seguem a versão iOS `0f92bf3`. O site mantém uma única navegação responsiva. Os tutoriais de cada tela aparecem em um diálogo central com **Ver depois** e **Próximo/Entendi**, bloqueiam toques e teclado nos controles de fundo e podem ser repetidos por **Como funciona**. O conteúdo rola em telas pequenas; a conclusão só fecha o diálogo depois de ser gravada. Se o armazenamento falhar, a mensagem permanece no tutorial e permite tentar novamente.
+
+O foguinho ao lado do perfil abre o calendário dos dias estudados e sempre mostra a contagem, inclusive zero. Sessões concluídas com tempo positivo, revisões registradas e questões respondidas contam como estudo; a resposta não precisa estar correta. Registros futuros não contam. A sequência de ontem permanece até hoje, mas a chama fica cinza até existir uma atividade válida no dia atual. A passagem de dias usa o calendário local, inclusive no horário de verão. O calendário permite consultar meses anteriores, sem avançar além do mês atual. Revisões novas conservam seu histórico de datas no backup; arquivos antigos podem conter apenas a última revisão de cada tema.
+
+**Sons de navegação**, em **Seus dados**, começa desligado. Quando ativado, usa um tom discreto de 720 Hz por 70 ms, com intervalo mínimo de 140 ms e sem sobreposição, em menus, ajuda, tutoriais e calendário. Salvamentos automáticos de preferências ficam silenciosos. O navegador pode impedir áudio; isso não impede a ação. O contexto de áudio é liberado após breve ociosidade, ao ocultar a aba ou desligar o som. As transições de telas, etapas, calendário e mascote respeitam tanto a preferência de redução de animações do site quanto a do sistema.
+
+A restauração manual validada só anuncia sucesso depois de gravar o backup no navegador. Uma falha de gravação conserva a coleção atual, mantém a confirmação aberta e permite nova tentativa. Esta versão continua sendo um site estático para GitHub Pages: **não inclui personalização por IA, modelos locais, backup diário nativo, iCloud ou sincronização entre aparelhos**. Backups continuam sendo arquivos JSON exportados pelo usuário.
+
+Os testes de interação cobrem centralização em 1280×900 e 390×844, rolagem em 320×300, bloqueio de fundo e teclado, redução de animações, falhas de persistência, sequência e calendário, revisões e questões, preservação na restauração e som opcional. As capturas de interface usam um perfil sintético e ficam em `test-results`.
+
+O histórico de revisões respeita o limite validado dos backups. Ao chegar a 20 mil registros, revisões repetidas no mesmo dia local podem ser reunidas, conservando todos os dias estudados. Se ainda houver mais de 20 mil dias distintos, a revisão não substitui os dados e apresenta um erro persistente; nunca grava um arquivo que o próprio leitor recusaria.
+
+Validação local: a suíte completa de 36 testes Playwright passou, incluindo os 11 testes de interação e dois casos no limite de histórico. A verificação de tipos e a compilação também passaram. O JavaScript principal de produção ficou em aproximadamente 88,6 kB gzip, sem dependência nova para estes recursos. Nenhum commit, push ou deploy foi realizado nesta atualização de paridade.
+
+## Desempenho e testes de carga
+
+As listas de matérias e revisões mostram até 48 itens por página, com pesquisa na coleção completa. Seletores com mais de 100 matérias permitem pesquisa e paginação de todos os resultados em grupos de 100, mantendo a seleção disponível ao mudar de página. Isso inclui nomes exatos após muitos prefixos e matérias importadas com nomes idênticos. Isso limita o trabalho da interface sem remover registros do armazenamento ou do backup. Totais por matéria são calculados em uma passagem; vínculos entre respostas e questões usam um índice. As informações derivadas são reaproveitadas entre renderizações e o relógio de foco não recalcula todo o histórico a cada segundo.
+
+Em 23/09/2026, o teste headless usou Chromium 153.0.8010.12, Windows, 24 processadores lógicos informados pelo navegador, janela de 1280×900 e dados sintéticos iguais antes/depois: 71, 1.000 e 5.000 itens **em cada** coleção de matérias, sessões, revisões, questões e respostas. Foram três passagens pelas cinco telas por cenário. A coluna final inclui a revisão de segurança das gravações e dos seletores (`after-review`). Medianas em milissegundos:
+
+| Itens por coleção | Abrir matérias: antes → depois | Abrir revisões: antes → depois | Validar backup: antes → depois | Elementos na tela de matérias: antes → depois |
+| --- | ---: | ---: | ---: | ---: |
+| 71 | 29,7 → 29,1 | 29,3 → 21,9 | 0,2 → 0,1 | 1.129 → 929 |
+| 1.000 | 131,8 → 27,6 | 148,5 → 20,6 | 5,1 → 0,9 | 9.490 → 929 |
+| 5.000 | 815,1 → 28,9 | 797,6 → 22,2 | 35,2 → 5,4 | 45.490 → 929 |
+
+No cenário de 5.000 itens, a derivação dos totais por matéria caiu de 66 para 0,3 ms; uma alteração de duração salva caiu de 146,3 para 34,3 ms (uma amostra por execução, não uma mediana). As tarefas do navegador acima de 50 ms passaram de 32 para zero nesse ensaio. A memória JavaScript observada ao final, antes de forçar coleta, foi de 268,24 para 11,66 MiB; após coleta forçada, de 13,75 para 10,97 MiB. Isso mede o heap JavaScript naquele instante, não o pico nem a memória total do navegador, e sofre influência da coleta automática.
+
+Antes da revisão final das gravações, um ensaio adicional de 100 navegações com as cinco coleções de 5.000 itens passou: medianas de 28,8 ms para matérias e 20,9 ms para revisões, zero tarefas acima de 50 ms observadas e 11,05 MiB de heap retido após coleta. A carga continua completa: 25.000 registros e aproximadamente 2,66 MB de JSON. Os testes verificam que edição, pesquisa, paginação, seleção fora da primeira página e salvamento mantêm as quantidades e vínculos válidos.
+
+Os tempos de navegação incluem dois frames de apresentação; não são INP nem uma garantia em outros aparelhos. A interface medida é de produção, enquanto os microtestes dos algoritmos importam os mesmos módulos TypeScript pelo servidor local do Vite. Amostras abaixo de 1 ms têm resolução limitada. O computador não foi isolado de outros processos e não houve limitação artificial de CPU. Os testes não usam limites temporais apertados como critério de CI, não transmitem dados e não adicionam monitoramento ao aplicativo.
+
+Para reproduzir as três cargas e guardar medições em `.cache/performance`:
+
+```powershell
+$env:NINHO_PERFORMANCE = '1'
+$env:NINHO_PERFORMANCE_LABEL = 'minha-medicao'
+bun run test tests/performance.spec.ts
+```
+
+Para repetir o ensaio de 100 navegações:
+
+```powershell
+$env:NINHO_PERFORMANCE_ROUNDS = '20'
+$env:NINHO_PERFORMANCE_SIZES = '5000'
+$env:NINHO_PERFORMANCE_LABEL = 'carga-repetida'
+bun run test tests/performance.spec.ts
+Remove-Item Env:NINHO_PERFORMANCE, Env:NINHO_PERFORMANCE_LABEL, Env:NINHO_PERFORMANCE_ROUNDS, Env:NINHO_PERFORMANCE_SIZES
+```
+
+Toda alteração é serializada e validada pelo mesmo leitor de backups antes de substituir o armazenamento ou o estado em memória. Uma coleção acima de 20 mil registros é recusada com mensagem visível, mantendo os dados anteriores, o formulário e o tempo da sessão. Não há descarte de registros para liberar espaço. Se os dados forem válidos mas a quota do navegador falhar, o modo em memória continua disponível com aviso e exportação; ações que exigem persistência, como concluir o tutorial ou restaurar um backup, continuam abertas até salvar.
+
+Essa verificação adiciona trabalho deliberado a cada gravação. A amostra final de alterar a duração, incluindo serializar, validar e gravar o estado completo mais dois frames, foi de 29,4 ms com 71 itens, 29,2 ms com 1.000 e 34,3 ms com 5.000 por coleção. No cenário maior, eram 32,7 ms após a otimização inicial e 146,3 ms na linha de base. São amostras únicas sujeitas a variação, não medianas nem uma medição isolada de I/O. A repetição final das três cargas não observou tarefas acima de 50 ms.
+
+Os resultados locais de referência são `baseline-71.json`, `baseline-1000.json`, `baseline-5000.json`, os correspondentes `after-*.json`, `stress-5000.json` e os três `after-review-*.json`. As medições anteriores foram preservadas. Cada arquivo inclui as amostras, tarefas longas, contagens de DOM e métricas do navegador. A suíte completa com as cargas ativadas passou em **48 testes** (43,2 s): 45 funcionais e três perfis de carga. Inclui seis regressões da revisão: acesso ao último nome duplicado e limites de matérias, questões, respostas, sessões e revisões; todas confirmam que os dados recusados não chegam ao armazenamento e continuam reabríveis. Sem `NINHO_PERFORMANCE=1`, somente os três perfis são omitidos. TypeScript e build passaram; JavaScript de produção: **89,86 kB gzip**, sem nova dependência. Nenhum commit, push ou deploy foi realizado.

@@ -54,12 +54,16 @@ for (const scenario of scenarios) {
       await mkdir(cacheRoot, { recursive: true });
       directory = await mkdtemp(join(cacheRoot, 'pages-test-'));
       const previousBase = process.env.PAGES_BASE_PATH;
+      const previousNodeEnv = process.env.NODE_ENV;
       try {
         process.env.PAGES_BASE_PATH = scenario.input;
+        process.env.NODE_ENV = 'production';
         await build({ build: { outDir: directory, emptyOutDir: false }, logLevel: 'error' });
       } finally {
         if (previousBase === undefined) delete process.env.PAGES_BASE_PATH;
         else process.env.PAGES_BASE_PATH = previousBase;
+        if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = previousNodeEnv;
       }
       ({ server, origin } = await serveFiles(directory, scenario.base));
     });
@@ -160,7 +164,7 @@ for (const scenario of scenarios) {
       for (let step = 0; step < 9; step++) await page.getByRole('button', { name: 'Continuar', exact: true }).click();
       await page.getByRole('button', { name: 'Salvar meu perfil', exact: true }).click();
       await page.getByRole('button', { name: 'Conhecer meu Ninho' }).click();
-      await page.getByRole('button', { name: 'Fechar tutorial' }).click();
+      await page.getByRole('button', { name: 'Ver depois', exact: true }).click();
       await page.getByRole('button', { name: 'Nova matéria' }).click();
       await page.getByLabel('Nome da matéria').fill('Estudo offline');
       await page.getByRole('dialog').getByRole('button', { name: 'Adicionar matéria', exact: true }).click();
@@ -169,6 +173,7 @@ for (const scenario of scenarios) {
       await expect(page.getByRole('heading', { name: 'Um passo de cada vez.' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Estudo offline' })).toBeVisible();
       await page.getByRole('navigation').getByRole('button', { name: 'Temporizador' }).click();
+      await page.getByRole('button', { name: 'Ver depois', exact: true }).click();
       await page.getByRole('button', { name: 'Começar foco' }).click();
       await expect(page.getByRole('button', { name: 'Pausar', exact: true })).toBeVisible();
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ninho-web:v1')!).timer.startedAt)).toBeGreaterThan(0);

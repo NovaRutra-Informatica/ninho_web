@@ -1,55 +1,48 @@
-import { useEffect, useState } from "react";
-const tours: Record<string, [string, string, string][]> = {
+import { useEffect, useRef, useState } from "react";
+import { Owl } from './Owl';
+const tours: Record<string, [string, string][]> = {
   today: [
     [
       "Um lugar para começar",
       "Use a navegação para abrir matérias, temporizador, revisões e questões. Meu perfil fica no topo da tela e guarda seus objetivos.",
-      ".sidebar",
     ],
     [
       "Seu dia em poucos números",
-      "Minutos, sessões e revisões mostram o que você registrou. O próximo estudo e as revisões ajudam a escolher uma atividade.",
-      ".stats-strip",
+      "Minutos, sessões e revisões mostram o que você registrou. O foguinho ao lado do perfil abre seu calendário. Ele acende depois de estudar hoje; a contagem pode continuar a de ontem até lá.",
     ],
   ],
   timer: [
     [
       "Um tempo só para estudar",
       "Escolha foco com duração ou cronômetro livre. Ajuste minutos, selecione a matéria e descreva o tema antes de começar.",
-      ".timer-layout",
     ],
     [
       "Registre como foi",
       "Ao concluir a sessão, seu feedback define a revisão em 1, 3 ou 7 dias. Pausar mantém seu tempo, inclusive ao recarregar a página.",
-      ".timer-panel",
     ],
   ],
   subjects: [
     [
       "Seu estudo organizado",
       "Adicione suas matérias e inicie sessões a partir de cada uma. O histórico guarda tempo, temas, feedbacks e anotações.",
-      "main",
     ],
   ],
   reviews: [
     [
       "Reencontrar para lembrar",
       "Estudar abre uma sessão sobre o tema. Já revisei registra a revisão e aumenta o próximo intervalo. São regras locais, sem IA.",
-      "main",
     ],
   ],
   questions: [
     [
       "Pratique com suas questões",
       "Cadastre alternativas, resposta correta e explicação. Cada tentativa fica no histórico; o feedback aparece depois da resposta.",
-      "main",
     ],
   ],
   data: [
     [
       "Seus dados ficam com você",
       "Exporte backups regularmente. Restaurar ou carregar exemplos pede confirmação. Tema e animações são salvos automaticamente.",
-      ".data-grid",
     ],
   ],
 };
@@ -57,54 +50,71 @@ export function Tutorial({
   page,
   seen,
   mark,
+  onNavigate,
 }: {
   page: string;
   seen: string[];
-  mark: (page: string) => void;
+  mark: (page: string) => boolean;
+  onNavigate: () => void;
 }) {
   const [index, setIndex] = useState(0);
   const [replay, setReplay] = useState(false);
+  const [failure, setFailure] = useState('');
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const dialog = useRef<HTMLDialogElement>(null);
   const tour = tours[page];
   const visible = Boolean(tour && (!seen.includes(page) || replay));
   useEffect(() => {
     if (!visible) return;
-    const target = document.querySelector(tour[index][2]);
-    target?.classList.add("tutorial-highlight");
-    return () => target?.classList.remove("tutorial-highlight");
-  }, [page, index, visible]);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const element = dialog.current;
+    element?.showModal();
+    element?.querySelector<HTMLButtonElement>('[data-tutorial-continue]')?.focus({ preventScroll: true });
+    return () => { element?.close(); document.body.style.overflow = previousOverflow; };
+  }, [visible]);
   if (!tour) return null;
   const close = () => {
-    mark(page);
-    setReplay(false);
-    setIndex(0);
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    if (mark(page)) {
+      setReplay(false);
+      setIndex(0);
+      setFailure('');
+    } else setFailure('Não foi possível salvar o tutorial. Seus dados foram mantidos. Tente novamente.');
+    savingRef.current = false;
+    setSaving(false);
   };
   return visible ? (
-    <aside className="tutorial-coach" aria-label="Tutorial desta tela">
-      <div className="dialog-head">
-        <small>
-          Conheça seu Ninho · {index + 1}/{tour.length}
-        </small>
-        <button
-          aria-label="Fechar tutorial"
-          className="icon-button"
-          onClick={close}
-        >
-          ×
-        </button>
+    <dialog ref={dialog} className="tutorial-dialog" aria-label="Tutorial desta tela" aria-modal="true" onCancel={event => event.preventDefault()} onKeyDown={event => {
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex="0"]'));
+      if (!controls.length) return;
+      event.preventDefault();
+      const current = controls.indexOf(document.activeElement as HTMLElement);
+      controls[(current + (event.shiftKey ? controls.length - 1 : 1)) % controls.length].focus();
+    }}>
+      <div className="tutorial-content" tabIndex={0} aria-label="Conteúdo do tutorial">
+        <div className="tutorial-intro">
+          <Owl small happy={index > 0} />
+          <div><small>No seu ritmo</small><strong>Conheça seu Ninho</strong><div className="profile-steps" aria-hidden="true">{tour.map((_, step) => <span key={step} className={step <= index ? 'filled' : ''} />)}</div></div>
+          <span className="tutorial-count" aria-label={`Etapa ${index + 1} de ${tour.length}`}>{index + 1}/{tour.length}</span>
+        </div>
+        <div className="tutorial-step" key={index} aria-live="polite">
+          <h2>{tour[index][0]}</h2>
+          <p>{tour[index][1]}</p>
+        </div>
+        {failure && <p className="tutorial-error" role="alert">{failure}</p>}
       </div>
-      <h2>{tour[index][0]}</h2>
-      <p>{tour[index][1]}</p>
-      <button
-        className="button"
-        onClick={() =>
-          index + 1 < tour.length ? setIndex(index + 1) : close()
-        }
-      >
-        {index + 1 < tour.length ? "Próximo" : "Entendi"}
-      </button>
-    </aside>
+      <div className="tutorial-actions">
+        <button className="button secondary" disabled={saving} onClick={() => { onNavigate(); close(); }}>Ver depois</button>
+        <button className="button" data-tutorial-continue disabled={saving} onClick={() => { onNavigate(); if (index + 1 < tour.length) setIndex(index + 1); else close(); }}>{index + 1 < tour.length ? "Próximo" : "Entendi"}</button>
+      </div>
+    </dialog>
   ) : (
-    <button className="tutorial-replay" onClick={() => setReplay(true)}>
+    <button className="tutorial-replay" onClick={() => { onNavigate(); setReplay(true); }}>
       Como funciona
     </button>
   );

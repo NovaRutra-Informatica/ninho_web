@@ -2,6 +2,7 @@
   "name": "ninho-web",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "type": "module",
   "description": "Ambiente de desenvolvimento da versão web do Ninho.",
   "engines": {
@@ -11,7 +12,7 @@
     "dev": "vite --host 127.0.0.1",
     "check": "tsc --noEmit",
     "test": "playwright test",
-    "build": "npm run check && vite build",
+    "build": "bun run check && vite build",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

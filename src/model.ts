@@ -1,13 +1,14 @@
 import { emptyProfile, type StudentProfile } from "./profile";
 export const STORAGE_KEY = 'ninho-web:v1';
 export const DAY = 86_400_000;
+const MAX_COLLECTION_ENTRIES = 20000;
 export type Subject = { id: string; name: string; color: number; createdAt: number };
 export type Session = { id: string; subjectId: string; topic: string; seconds: number; completedAt: number; confidence: number; notes: string };
 export type Review = { id: string; subjectId: string; topic: string; dueAt: number; stage: number; lastReviewedAt?: number };
 export type Question = { id: string; subjectId: string; prompt: string; options: string[]; correct: number; explanation: string };
 export type Answer = { id: string; questionId: string; selected: number; correct: boolean; answeredAt: number };
 export type Timer = { mode: 'focus' | 'stopwatch'; duration: number; elapsed: number; startedAt: number | null; subjectId: string; topic: string };
-export type StudyData = { version: 1; profile?: StudentProfile | null; preferences?: { theme: "light" | "dark" | "system"; reducedMotion: boolean }; subjects: Subject[]; sessions: Session[]; reviews: Review[]; questions: Question[]; answers: Answer[]; timer: Timer };
+export type StudyData = { version: 1; profile?: StudentProfile | null; preferences?: { theme: "light" | "dark" | "system"; reducedMotion: boolean; sound?: boolean }; subjects: Subject[]; sessions: Session[]; reviews: Review[]; reviewHistory?: { id: string; reviewedAt: number }[]; questions: Question[]; answers: Answer[]; timer: Timer };
 export const freshData = (): StudyData => ({ version: 1, profile: emptyProfile(), preferences: { theme: "system", reducedMotion: false }, subjects: [], sessions: [], reviews: [], questions: [], answers: [], timer: { mode: 'focus', duration: 25 * 60, elapsed: 0, startedAt: null, subjectId: '', topic: '' } });
 export const uid = () => crypto.randomUUID();
 export function elapsedSeconds(timer: Timer, now = Date.now()) {
@@ -28,33 +29,65 @@ export function saveSession(data: StudyData, confidence: number, notes: string, 
   const topic = data.timer.topic.trim() || 'Estudo geral';
   const next = confidence === 1 ? 1 : confidence === 2 ? 3 : 7;
   const existing = data.reviews.find(r => r.subjectId === data.timer.subjectId && r.topic.toLocaleLowerCase() === topic.toLocaleLowerCase());
-  const review: Review = { id: existing?.id ?? uid(), subjectId: data.timer.subjectId, topic, dueAt: now + next * DAY, stage: confidence - 1 };
+  const review: Review = { id: existing?.id ?? uid(), subjectId: data.timer.subjectId, topic, dueAt: now + next * DAY, stage: confidence - 1, ...(existing?.lastReviewedAt !== undefined ? { lastReviewedAt: existing.lastReviewedAt } : {}) };
   return { ...data, sessions: [{ id: uid(), subjectId: data.timer.subjectId, topic, seconds, completedAt: now, confidence, notes: notes.trim() }, ...data.sessions], reviews: [review, ...data.reviews.filter(r => r.id !== review.id)], timer: { ...data.timer, elapsed: 0, startedAt: null } };
+}
+
+export function completeReview(data: StudyData, id: string, now = Date.now()): StudyData {
+  const previous = data.reviews.find(review => review.id === id);
+  if (!previous) return data;
+  let history = [...(data.reviewHistory ?? [])];
+  if (previous.lastReviewedAt !== undefined && !history.some(review => review.reviewedAt === previous.lastReviewedAt)) history.push({ id: uid(), reviewedAt: previous.lastReviewedAt });
+  history.push({ id: uid(), reviewedAt: now });
+  if (history.length > MAX_COLLECTION_ENTRIES) {
+    // This history serves the day calendar. Repeated reviews on one local day
+    // can share the earliest timestamp without losing any recorded study day.
+    const days = new Map<string, (typeof history)[number]>();
+    for (const entry of history) {
+      const date = new Date(entry.reviewedAt);
+      const key = Number.isFinite(date.getTime()) ? date.toDateString() : `timestamp:${entry.reviewedAt}`;
+      const earliest = days.get(key);
+      if (!earliest || entry.reviewedAt < earliest.reviewedAt) days.set(key, entry);
+    }
+    history = [...days.values()];
+    if (history.length > MAX_COLLECTION_ENTRIES) throw new Error('Não foi possível registrar a revisão: o histórico atingiu o limite de dias distintos. Seus dados foram mantidos. Exporte um backup para guardá-los.');
+  }
+  const stage = Math.min(5, previous.stage + 1);
+  return { ...data, reviewHistory: history, reviews: data.reviews.map(review => review.id === id ? { ...review, stage, dueAt: now + intervals[stage] * DAY, lastReviewedAt: now } : review) };
 }
 
 function object(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
 function str(value: unknown, max = 2000): value is string { return typeof value === 'string' && value.length <= max; }
 function num(value: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): value is number { return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max; }
 function integer(value: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): value is number { return num(value, min, max) && Number.isInteger(value); }
-function entries(value: unknown): value is Record<string, unknown>[] { return Array.isArray(value) && value.length <= 20000 && value.every(object); }
+function entries(value: unknown): value is Record<string, unknown>[] { return Array.isArray(value) && value.length <= MAX_COLLECTION_ENTRIES && value.every(object); }
 function unique(items: Record<string, unknown>[]) { return items.every(item => str(item.id, 100) && item.id.length > 0) && new Set(items.map(item => item.id)).size === items.length; }
 export function parseData(raw: string): StudyData {
   const d: unknown = JSON.parse(raw);
+  if (object(d)) {
+    for (const [key, label] of Object.entries({ subjects: 'matérias', sessions: 'sessões', reviews: 'revisões', questions: 'questões', answers: 'respostas', reviewHistory: 'histórico de revisões' })) {
+      if (Array.isArray(d[key]) && d[key].length > MAX_COLLECTION_ENTRIES) throw new Error(`O limite de 20.000 registros de ${label} foi atingido. Seus dados atuais foram mantidos.`);
+    }
+  }
   if (!object(d) || d.version !== 1 || !entries(d.subjects) || !entries(d.sessions) || !entries(d.reviews) || !entries(d.questions) || !entries(d.answers) || !object(d.timer)) throw new Error('Formato de backup inválido. Selecione um backup do Ninho Web.');
   const { subjects, sessions, reviews, questions, answers, timer } = d;
   const ids = new Set(subjects.map(s => s.id));
-  const questionIds = new Set(questions.map(q => q.id));
+  const questionsById = new Map(questions.map(q => [q.id, q]));
   const valid = [subjects, sessions, reviews, questions, answers].every(unique)
     && subjects.every(s => str(s.name, 100) && s.name.trim().length > 0 && integer(s.color, 0, 4) && num(s.createdAt))
     && sessions.every(s => ids.has(s.subjectId) && str(s.topic, 200) && num(s.seconds, 1, 604800) && num(s.completedAt) && integer(s.confidence, 1, 3) && str(s.notes))
     && reviews.every(r => ids.has(r.subjectId) && str(r.topic, 200) && num(r.dueAt) && integer(r.stage, 0, 5) && (r.lastReviewedAt === undefined || num(r.lastReviewedAt)))
     && questions.every(q => ids.has(q.subjectId) && str(q.prompt) && q.prompt.trim().length > 0 && Array.isArray(q.options) && q.options.length >= 2 && q.options.length <= 5 && q.options.every(o => str(o, 500) && o.trim().length > 0) && integer(q.correct, 0, q.options.length - 1) && str(q.explanation))
-    && answers.every(a => questionIds.has(a.questionId) && integer(a.selected, 0, 4) && typeof a.correct === 'boolean' && num(a.answeredAt) && questions.some(q => q.id === a.questionId && Array.isArray(q.options) && (a.selected as number) < q.options.length && a.correct === (a.selected === q.correct)))
+    && answers.every(a => {
+      const question = questionsById.get(a.questionId);
+      return question && integer(a.selected, 0, 4) && typeof a.correct === 'boolean' && num(a.answeredAt) && Array.isArray(question.options) && a.selected < question.options.length && a.correct === (a.selected === question.correct);
+    })
     && (timer.mode === 'focus' || timer.mode === 'stopwatch') && integer(timer.duration, 60, 14400) && num(timer.elapsed, 0, 604800) && (timer.startedAt === null || num(timer.startedAt)) && str(timer.subjectId, 100) && (timer.subjectId === '' || ids.has(timer.subjectId)) && str(timer.topic, 200);
   if (!valid) throw new Error('O backup contém dados incompletos ou inconsistentes. Seus dados atuais foram mantidos.');
   if (timer.subjectId === '' && subjects.length > 0) timer.subjectId = subjects[0].id;
   if (d.profile !== undefined && d.profile !== null) validateProfile(d.profile);
-  if (d.preferences !== undefined && (!object(d.preferences) || !["light", "dark", "system"].includes(String(d.preferences.theme)) || typeof d.preferences.reducedMotion !== "boolean")) throw new Error("Preferências inválidas no backup.");
+  if (d.preferences !== undefined && (!object(d.preferences) || !["light", "dark", "system"].includes(String(d.preferences.theme)) || typeof d.preferences.reducedMotion !== "boolean" || (d.preferences.sound !== undefined && typeof d.preferences.sound !== 'boolean'))) throw new Error("Preferências inválidas no backup.");
+  if (d.reviewHistory !== undefined && (!entries(d.reviewHistory) || !unique(d.reviewHistory) || !d.reviewHistory.every(review => num(review.reviewedAt)))) throw new Error('Histórico de revisões inválido no backup. Seus dados foram preservados.');
   return d as unknown as StudyData;
 }
 
